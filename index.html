@@ -230,66 +230,87 @@
             margin-bottom: 0.75rem;
         }
 
-        .answer {
-            display: none;
-            color: #555;
-            font-style: italic;
-            padding-left: 1rem;
-            border-left: 2px solid #ccc;
-            margin-top: 0.75rem;
-        }
-
-        .answer.visible {
-            display: block;
-        }
-
-        .question-actions {
+        .answer-input-area {
             display: flex;
             gap: 0.5rem;
-            align-items: center;
-            flex-wrap: wrap;
+            margin-bottom: 0.5rem;
         }
 
-        .reveal-btn, .answer-btn {
+        .answer-input {
+            flex: 1;
+            padding: 0.5rem;
+            border: 1px solid #ccc;
+            font-family: inherit;
+            font-size: 0.95rem;
+        }
+
+        .answer-input:focus {
+            outline: none;
+            border-color: #666;
+        }
+
+        .answer-input:disabled {
+            background: #f5f5f5;
+        }
+
+        .submit-btn {
+            background: #333;
+            color: #fff;
+            border: none;
+            padding: 0.5rem 1rem;
+            font-family: inherit;
+            cursor: pointer;
+        }
+
+        .submit-btn:hover {
+            background: #444;
+        }
+
+        .submit-btn:disabled {
+            background: #999;
+            cursor: default;
+        }
+
+        .skip-btn {
             background: none;
             border: 1px solid #ccc;
-            padding: 0.3rem 0.8rem;
-            font-size: 0.8rem;
+            padding: 0.5rem 0.8rem;
+            font-size: 0.85rem;
             color: #666;
             cursor: pointer;
             font-family: inherit;
-            transition: all 0.2s;
         }
 
-        .reveal-btn:hover, .answer-btn:hover {
+        .skip-btn:hover {
             border-color: #999;
             color: #333;
         }
 
-        .answer-btn.correct {
+        .result {
+            padding: 0.75rem 1rem;
+            margin-top: 0.5rem;
+            font-size: 0.95rem;
+        }
+
+        .result.correct {
             background: #d4edda;
-            border-color: #28a745;
-            color: #155724;
+            border-left: 3px solid #28a745;
         }
 
-        .answer-btn.incorrect {
+        .result.incorrect {
             background: #f8d7da;
-            border-color: #dc3545;
-            color: #721c24;
+            border-left: 3px solid #dc3545;
         }
 
-        .answer-btn:disabled {
-            cursor: default;
-            opacity: 0.7;
+        .result .correct-answer {
+            color: #555;
+            font-style: italic;
+            margin-top: 0.25rem;
         }
 
-        .question.answered .question-actions .answer-btn {
-            display: none;
-        }
-
-        .question.answered .question-actions .result-text {
-            font-size: 0.8rem;
-            color: #666;
+        .login-prompt {
+            font-size: 0.85rem;
+            color: #888;
             font-style: italic;
         }
 
@@ -347,37 +368,40 @@
         <section class="category">
             <h2>Art</h2>
 
-            <div class="question" data-id="q1">
+            <!--
+                QUESTION FORMAT:
+                data-id: unique ID for tracking
+                data-answers: comma-separated list of acceptable answers (case-insensitive)
+            -->
+
+            <div class="question" data-id="q1" data-answers="Raphael,Raffaello,Raffaello Sanzio">
                 <p class="question-text">Two peripheral figures in a fresco by what High Renaissance master were used in the cover art for a pair of companion albums released by Guns N' Roses in September 1991?</p>
-                <div class="question-actions">
-                    <button class="reveal-btn" onclick="toggleAnswer(this)">Show Answer</button>
-                    <button class="answer-btn correct-btn hidden" onclick="markAnswer(this, true)">Got it</button>
-                    <button class="answer-btn incorrect-btn hidden" onclick="markAnswer(this, false)">Missed it</button>
-                    <span class="result-text hidden"></span>
+                <div class="answer-input-area">
+                    <input type="text" class="answer-input" placeholder="Your answer..." onkeypress="handleKeyPress(event, this)">
+                    <button class="submit-btn" onclick="submitAnswer(this)">Submit</button>
+                    <button class="skip-btn" onclick="skipQuestion(this)">Skip</button>
                 </div>
-                <p class="answer">Raphael</p>
+                <div class="result hidden"></div>
             </div>
 
-            <div class="question" data-id="q2">
+            <div class="question" data-id="q2" data-answers="Paolo Uccello,Uccello">
                 <p class="question-text">A 1432 battle between troops from Florence and Siena was depicted in three panels—now separated and housed, respectively, in London's National Gallery, the Louvre, and the Uffizi—by what artist?</p>
-                <div class="question-actions">
-                    <button class="reveal-btn" onclick="toggleAnswer(this)">Show Answer</button>
-                    <button class="answer-btn correct-btn hidden" onclick="markAnswer(this, true)">Got it</button>
-                    <button class="answer-btn incorrect-btn hidden" onclick="markAnswer(this, false)">Missed it</button>
-                    <span class="result-text hidden"></span>
+                <div class="answer-input-area">
+                    <input type="text" class="answer-input" placeholder="Your answer..." onkeypress="handleKeyPress(event, this)">
+                    <button class="submit-btn" onclick="submitAnswer(this)">Submit</button>
+                    <button class="skip-btn" onclick="skipQuestion(this)">Skip</button>
                 </div>
-                <p class="answer">Paolo Uccello</p>
+                <div class="result hidden"></div>
             </div>
 
-            <div class="question" data-id="q3">
+            <div class="question" data-id="q3" data-answers="Bosch,Hieronymus Bosch">
                 <p class="question-text">What name is shared by a German multinational supplier of technology and services (and manufacturer of home appliances) and an Early Netherlandish painter who created several renowned triptychs?</p>
-                <div class="question-actions">
-                    <button class="reveal-btn" onclick="toggleAnswer(this)">Show Answer</button>
-                    <button class="answer-btn correct-btn hidden" onclick="markAnswer(this, true)">Got it</button>
-                    <button class="answer-btn incorrect-btn hidden" onclick="markAnswer(this, false)">Missed it</button>
-                    <span class="result-text hidden"></span>
+                <div class="answer-input-area">
+                    <input type="text" class="answer-input" placeholder="Your answer..." onkeypress="handleKeyPress(event, this)">
+                    <button class="submit-btn" onclick="submitAnswer(this)">Submit</button>
+                    <button class="skip-btn" onclick="skipQuestion(this)">Skip</button>
                 </div>
-                <p class="answer">Bosch</p>
+                <div class="result hidden"></div>
             </div>
 
         </section>
@@ -411,7 +435,7 @@
 
     <script>
         // ============================================
-        // FIREBASE CONFIG - REPLACE WITH YOUR VALUES
+        // FIREBASE CONFIG
         // ============================================
         const firebaseConfig = {
             apiKey: "AIzaSyBdluf4mJiRQjwRfdFSjlMsRvG5hZ2LZS0",
@@ -494,7 +518,6 @@
                     await auth.signInWithEmailAndPassword(email, password);
                 } else {
                     await auth.createUserWithEmailAndPassword(email, password);
-                    // Initialize user document
                     await db.collection('users').doc(auth.currentUser.uid).set({
                         email: email,
                         stats: { answered: 0, correct: 0, streak: 0 },
@@ -520,7 +543,6 @@
             const provider = new firebase.auth.GoogleAuthProvider();
             try {
                 const result = await auth.signInWithPopup(provider);
-                // Check if new user, create document
                 const userDoc = await db.collection('users').doc(result.user.uid).get();
                 if (!userDoc.exists) {
                     await db.collection('users').doc(result.user.uid).set({
@@ -571,57 +593,79 @@
         function updateQuestionsUI() {
             document.querySelectorAll('.question').forEach(q => {
                 const id = q.dataset.id;
-                const resultText = q.querySelector('.result-text');
+                const inputArea = q.querySelector('.answer-input-area');
+                const resultDiv = q.querySelector('.result');
+                const input = q.querySelector('.answer-input');
+                const submitBtn = q.querySelector('.submit-btn');
+                const skipBtn = q.querySelector('.skip-btn');
 
                 if (answeredQuestions[id] !== undefined) {
-                    q.classList.add('answered');
-                    q.querySelector('.answer').classList.add('visible');
-                    q.querySelector('.reveal-btn').classList.add('hidden');
-                    q.querySelector('.correct-btn').classList.add('hidden');
-                    q.querySelector('.incorrect-btn').classList.add('hidden');
-                    resultText.classList.remove('hidden');
-                    resultText.textContent = answeredQuestions[id] ? '✓ Correct' : '✗ Missed';
+                    // Already answered
+                    const record = answeredQuestions[id];
+                    input.value = record.userAnswer || '';
+                    input.disabled = true;
+                    submitBtn.disabled = true;
+                    skipBtn.classList.add('hidden');
+
+                    resultDiv.classList.remove('hidden');
+                    if (record.correct) {
+                        resultDiv.className = 'result correct';
+                        resultDiv.innerHTML = `<strong>Correct!</strong>`;
+                    } else {
+                        resultDiv.className = 'result incorrect';
+                        resultDiv.innerHTML = `<strong>Incorrect.</strong><div class="correct-answer">Answer: ${record.correctAnswer}</div>`;
+                    }
                 } else {
-                    q.classList.remove('answered');
-                    resultText.classList.add('hidden');
-                    resultText.textContent = '';
+                    // Not answered yet
+                    input.disabled = false;
+                    input.value = '';
+                    submitBtn.disabled = false;
+                    skipBtn.classList.remove('hidden');
+                    resultDiv.classList.add('hidden');
                 }
             });
         }
 
         // ============================================
-        // QUESTION INTERACTIONS
+        // ANSWER CHECKING
         // ============================================
-        function toggleAnswer(btn) {
-            const question = btn.closest('.question');
-            const answer = question.querySelector('.answer');
-            const correctBtn = question.querySelector('.correct-btn');
-            const incorrectBtn = question.querySelector('.incorrect-btn');
+        function normalizeAnswer(str) {
+            return str.toLowerCase().trim().replace(/[^a-z0-9\s]/g, '');
+        }
 
-            answer.classList.toggle('visible');
+        function checkAnswer(userAnswer, acceptableAnswers) {
+            const normalized = normalizeAnswer(userAnswer);
+            return acceptableAnswers.some(ans => normalizeAnswer(ans) === normalized);
+        }
 
-            if (answer.classList.contains('visible')) {
-                btn.textContent = 'Hide Answer';
-                if (currentUser && !question.classList.contains('answered')) {
-                    correctBtn.classList.remove('hidden');
-                    incorrectBtn.classList.remove('hidden');
-                }
-            } else {
-                btn.textContent = 'Show Answer';
-                correctBtn.classList.add('hidden');
-                incorrectBtn.classList.add('hidden');
+        function handleKeyPress(event, input) {
+            if (event.key === 'Enter') {
+                const submitBtn = input.parentElement.querySelector('.submit-btn');
+                submitAnswer(submitBtn);
             }
         }
 
-        async function markAnswer(btn, isCorrect) {
-            if (!currentUser) return;
-
+        async function submitAnswer(btn) {
             const question = btn.closest('.question');
             const id = question.dataset.id;
+            const input = question.querySelector('.answer-input');
+            const userAnswer = input.value.trim();
 
+            if (!userAnswer) return;
             if (answeredQuestions[id] !== undefined) return;
 
-            answeredQuestions[id] = isCorrect;
+            const acceptableAnswers = question.dataset.answers.split(',');
+            const isCorrect = checkAnswer(userAnswer, acceptableAnswers);
+            const correctAnswer = acceptableAnswers[0]; // Display first answer as the "correct" one
+
+            // Record answer
+            answeredQuestions[id] = {
+                correct: isCorrect,
+                userAnswer: userAnswer,
+                correctAnswer: correctAnswer
+            };
+
+            // Update stats
             userStats.answered++;
             if (isCorrect) {
                 userStats.correct++;
@@ -630,7 +674,38 @@
                 userStats.streak = 0;
             }
 
-            await saveUserData();
+            // Save if logged in
+            if (currentUser) {
+                await saveUserData();
+            }
+
+            updateStatsUI();
+            updateQuestionsUI();
+        }
+
+        async function skipQuestion(btn) {
+            const question = btn.closest('.question');
+            const id = question.dataset.id;
+
+            if (answeredQuestions[id] !== undefined) return;
+
+            const acceptableAnswers = question.dataset.answers.split(',');
+            const correctAnswer = acceptableAnswers[0];
+
+            // Record as skipped (incorrect)
+            answeredQuestions[id] = {
+                correct: false,
+                userAnswer: '(skipped)',
+                correctAnswer: correctAnswer
+            };
+
+            userStats.answered++;
+            userStats.streak = 0;
+
+            if (currentUser) {
+                await saveUserData();
+            }
+
             updateStatsUI();
             updateQuestionsUI();
         }
