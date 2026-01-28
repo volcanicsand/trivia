@@ -1,0 +1,79 @@
+FIREBASE SETUP INSTRUCTIONS
+===========================
+
+1. CREATE FIREBASE PROJECT
+   - Go to https://console.firebase.google.com/
+   - Click "Create a project" (or "Add project")
+   - Name it something like "my-trivia-site"
+   - Disable Google Analytics (optional, not needed)
+   - Click "Create project"
+
+2. ENABLE AUTHENTICATION
+   - In your project, click "Authentication" in left sidebar
+   - Click "Get started"
+   - Click "Email/Password"
+   - Toggle "Enable" to ON
+   - Click "Save"
+
+3. CREATE FIRESTORE DATABASE
+   - Click "Firestore Database" in left sidebar
+   - Click "Create database"
+   - Select "Start in test mode" (we'll secure it later)
+   - Choose a location (any is fine)
+   - Click "Enable"
+
+4. GET YOUR CONFIG VALUES
+   - Click the gear icon (Project settings) in left sidebar
+   - Scroll down to "Your apps"
+   - Click the web icon (</>)
+   - Name it "trivia-web" or whatever
+   - Click "Register app"
+   - You'll see a config object like this:
+
+     const firebaseConfig = {
+       apiKey: "AIzaSy...",
+       authDomain: "your-project.firebaseapp.com",
+       projectId: "your-project",
+       storageBucket: "your-project.appspot.com",
+       messagingSenderId: "123456789",
+       appId: "1:123456789:web:abc123"
+     };
+
+   - Copy these values
+
+5. UPDATE YOUR CODE
+   - Open index.html
+   - Find the firebaseConfig section (around line 399)
+   - Replace the placeholder values with your actual values
+
+6. SET FIRESTORE SECURITY RULES
+   - Go to Firestore Database > Rules
+   - Replace the rules with:
+
+     rules_version = '2';
+     service cloud.firestore {
+       match /databases/{database}/documents {
+         match /users/{userId} {
+           allow read, write: if request.auth != null && request.auth.uid == userId;
+         }
+       }
+     }
+
+   - Click "Publish"
+   - This ensures users can only read/write their own data
+
+7. TEST IT
+   - Open your site
+   - Click "Log in" > "Sign up"
+   - Create an account
+   - Answer some questions
+   - Your stats should persist
+
+DONE! Your trivia site now has user accounts and stat tracking.
+
+---
+
+OPTIONAL: Add Ko-fi link
+- Create account at https://ko-fi.com
+- Get your page URL (ko-fi.com/yourusername)
+- Update the link in the footer of index.html

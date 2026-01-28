@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trivia</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Georgia', serif;
+            background: #fafafa;
+            color: #222;
+            line-height: 1.7;
+            padding: 2rem;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        header {
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            font-weight: normal;
+            letter-spacing: 0.02em;
+        }
+
+        .user-area {
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .user-area button {
+            background: none;
+            border: 1px solid #ccc;
+            padding: 0.3rem 0.6rem;
+            font-size: 0.8rem;
+            color: #666;
+            cursor: pointer;
+            font-family: inherit;
+            margin-left: 0.5rem;
+        }
+
+        .user-area button:hover {
+            border-color: #999;
+            color: #333;
+        }
+
+        /* Auth Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-overlay.visible {
+            display: flex;
+        }
+
+        .modal {
+            background: #fff;
+            padding: 2rem;
+            max-width: 350px;
+            width: 90%;
+            border-radius: 4px;
+        }
+
+        .modal h2 {
+            font-size: 1.2rem;
+            font-weight: normal;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal input {
+            width: 100%;
+            padding: 0.6rem;
+            margin-bottom: 1rem;
+            border: 1px solid #ccc;
+            font-family: inherit;
+            font-size: 1rem;
+        }
+
+        .modal input:focus {
+            outline: none;
+            border-color: #666;
+        }
+
+        .modal .btn-primary {
+            width: 100%;
+            padding: 0.7rem;
+            background: #333;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .modal .btn-primary:hover {
+            background: #444;
+        }
+
+        .modal .btn-google {
+            width: 100%;
+            padding: 0.7rem;
+            background: #fff;
+            color: #333;
+            border: 1px solid #ccc;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        .modal .btn-google:hover {
+            background: #f5f5f5;
+        }
+
+        .modal .switch-mode {
+            font-size: 0.85rem;
+            color: #666;
+            text-align: center;
+        }
+
+        .modal .switch-mode a {
+            color: #333;
+            cursor: pointer;
+        }
+
+        .modal .error {
+            color: #c00;
+            font-size: 0.85rem;
+            margin-bottom: 1rem;
+        }
+
+        .modal .close-btn {
+            float: right;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #999;
+            line-height: 1;
+        }
+
+        /* Stats Box */
+        .stats-box {
+            background: #f0f0f0;
+            padding: 1rem 1.5rem;
+            margin-bottom: 2rem;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        .stats-box.visible {
+            display: block;
+        }
+
+        .stats-box h3 {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #666;
+            font-weight: normal;
+            margin-bottom: 0.5rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            text-align: center;
+        }
+
+        .stat-item .stat-value {
+            font-size: 1.4rem;
+            color: #333;
+        }
+
+        .stat-item .stat-label {
+            font-size: 0.7rem;
+            color: #888;
+            text-transform: uppercase;
+        }
+
+        /* Questions */
+        .category {
+            margin-bottom: 3rem;
+        }
+
+        .category h2 {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #666;
+            margin-bottom: 1.5rem;
+            font-weight: normal;
+        }
+
+        .question {
+            margin-bottom: 1.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        .question:last-child {
+            border-bottom: none;
+        }
+
+        .question-text {
+            margin-bottom: 0.75rem;
+        }
+
+        .answer {
+            display: none;
+            color: #555;
+            font-style: italic;
+            padding-left: 1rem;
+            border-left: 2px solid #ccc;
+            margin-top: 0.75rem;
+        }
+
+        .answer.visible {
+            display: block;
+        }
+
+        .question-actions {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .reveal-btn, .answer-btn {
+            background: none;
+            border: 1px solid #ccc;
+            padding: 0.3rem 0.8rem;
+            font-size: 0.8rem;
+            color: #666;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+
+        .reveal-btn:hover, .answer-btn:hover {
+            border-color: #999;
+            color: #333;
+        }
+
+        .answer-btn.correct {
+            background: #d4edda;
+            border-color: #28a745;
+            color: #155724;
+        }
+
+        .answer-btn.incorrect {
+            background: #f8d7da;
+            border-color: #dc3545;
+            color: #721c24;
+        }
+
+        .answer-btn:disabled {
+            cursor: default;
+            opacity: 0.7;
+        }
+
+        .question.answered .question-actions .answer-btn {
+            display: none;
+        }
+
+        .question.answered .question-actions .result-text {
+            font-size: 0.8rem;
+            color: #666;
+            font-style: italic;
+        }
+
+        footer {
+            margin-top: 4rem;
+            padding-top: 1rem;
+            border-top: 1px solid #ddd;
+            font-size: 0.85rem;
+            color: #888;
+        }
+
+        footer a {
+            color: #666;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Trivia</h1>
+        <div class="user-area">
+            <span id="user-status">
+                <button onclick="showAuthModal('login')">Log in</button>
+            </span>
+        </div>
+    </header>
+
+    <!-- Stats Box (shown when logged in) -->
+    <div class="stats-box" id="stats-box">
+        <h3>Your Stats</h3>
+        <div class="stats-grid">
+            <div class="stat-item">
+                <div class="stat-value" id="stat-answered">0</div>
+                <div class="stat-label">Answered</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="stat-correct">0</div>
+                <div class="stat-label">Correct</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="stat-percent">0%</div>
+                <div class="stat-label">Accuracy</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="stat-streak">0</div>
+                <div class="stat-label">Streak</div>
+            </div>
+        </div>
+    </div>
+
+    <main>
+        <section class="category">
+            <h2>Art</h2>
+
+            <div class="question" data-id="q1">
+                <p class="question-text">Two peripheral figures in a fresco by what High Renaissance master were used in the cover art for a pair of companion albums released by Guns N' Roses in September 1991?</p>
+                <div class="question-actions">
+                    <button class="reveal-btn" onclick="toggleAnswer(this)">Show Answer</button>
+                    <button class="answer-btn correct-btn hidden" onclick="markAnswer(this, true)">Got it</button>
+                    <button class="answer-btn incorrect-btn hidden" onclick="markAnswer(this, false)">Missed it</button>
+                    <span class="result-text hidden"></span>
+                </div>
+                <p class="answer">Raphael</p>
+            </div>
+
+            <div class="question" data-id="q2">
+                <p class="question-text">A 1432 battle between troops from Florence and Siena was depicted in three panels—now separated and housed, respectively, in London's National Gallery, the Louvre, and the Uffizi—by what artist?</p>
+                <div class="question-actions">
+                    <button class="reveal-btn" onclick="toggleAnswer(this)">Show Answer</button>
+                    <button class="answer-btn correct-btn hidden" onclick="markAnswer(this, true)">Got it</button>
+                    <button class="answer-btn incorrect-btn hidden" onclick="markAnswer(this, false)">Missed it</button>
+                    <span class="result-text hidden"></span>
+                </div>
+                <p class="answer">Paolo Uccello</p>
+            </div>
+
+            <div class="question" data-id="q3">
+                <p class="question-text">What name is shared by a German multinational supplier of technology and services (and manufacturer of home appliances) and an Early Netherlandish painter who created several renowned triptychs?</p>
+                <div class="question-actions">
+                    <button class="reveal-btn" onclick="toggleAnswer(this)">Show Answer</button>
+                    <button class="answer-btn correct-btn hidden" onclick="markAnswer(this, true)">Got it</button>
+                    <button class="answer-btn incorrect-btn hidden" onclick="markAnswer(this, false)">Missed it</button>
+                    <span class="result-text hidden"></span>
+                </div>
+                <p class="answer">Bosch</p>
+            </div>
+
+        </section>
+    </main>
+
+    <footer>
+        <p>Enjoy these questions? <a href="https://ko-fi.com/YOURUSERNAME" target="_blank">Buy me a coffee</a></p>
+    </footer>
+
+    <!-- Auth Modal -->
+    <div class="modal-overlay" id="auth-modal">
+        <div class="modal">
+            <button class="close-btn" onclick="hideAuthModal()">&times;</button>
+            <h2 id="auth-title">Log In</h2>
+            <div class="error hidden" id="auth-error"></div>
+            <input type="email" id="auth-email" placeholder="Email">
+            <input type="password" id="auth-password" placeholder="Password">
+            <button class="btn-primary" id="auth-submit" onclick="submitAuth()">Log In</button>
+            <button class="btn-google" onclick="googleSignIn()">Sign in with Google</button>
+            <p class="switch-mode">
+                <span id="switch-text">Don't have an account?</span>
+                <a onclick="toggleAuthMode()"><span id="switch-link">Sign up</span></a>
+            </p>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+    <script>
+        // ============================================
+        // FIREBASE CONFIG - REPLACE WITH YOUR VALUES
+        // ============================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyBdluf4mJiRQjwRfdFSjlMsRvG5hZ2LZS0",
+            authDomain: "jtrivia-416ca.firebaseapp.com",
+            projectId: "jtrivia-416ca",
+            storageBucket: "jtrivia-416ca.firebasestorage.app",
+            messagingSenderId: "284944131484",
+            appId: "1:284944131484:web:7c549e0036aaf65550d459"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // ============================================
+        // AUTH STATE
+        // ============================================
+        let currentUser = null;
+        let userStats = { answered: 0, correct: 0, streak: 0 };
+        let answeredQuestions = {};
+        let authMode = 'login';
+
+        auth.onAuthStateChanged(async (user) => {
+            currentUser = user;
+            updateUserUI();
+            if (user) {
+                await loadUserData();
+                updateStatsUI();
+                updateQuestionsUI();
+            }
+        });
+
+        function updateUserUI() {
+            const userStatus = document.getElementById('user-status');
+            const statsBox = document.getElementById('stats-box');
+
+            if (currentUser) {
+                userStatus.innerHTML = `
+                    <span>${currentUser.email}</span>
+                    <button onclick="logout()">Log out</button>
+                `;
+                statsBox.classList.add('visible');
+            } else {
+                userStatus.innerHTML = `<button onclick="showAuthModal('login')">Log in</button>`;
+                statsBox.classList.remove('visible');
+            }
+        }
+
+        // ============================================
+        // AUTH MODAL
+        // ============================================
+        function showAuthModal(mode) {
+            authMode = mode;
+            document.getElementById('auth-modal').classList.add('visible');
+            document.getElementById('auth-title').textContent = mode === 'login' ? 'Log In' : 'Sign Up';
+            document.getElementById('auth-submit').textContent = mode === 'login' ? 'Log In' : 'Sign Up';
+            document.getElementById('switch-text').textContent = mode === 'login' ? "Don't have an account?" : "Already have an account?";
+            document.getElementById('switch-link').textContent = mode === 'login' ? 'Sign up' : 'Log in';
+            document.getElementById('auth-error').classList.add('hidden');
+            document.getElementById('auth-email').value = '';
+            document.getElementById('auth-password').value = '';
+        }
+
+        function hideAuthModal() {
+            document.getElementById('auth-modal').classList.remove('visible');
+        }
+
+        function toggleAuthMode() {
+            showAuthModal(authMode === 'login' ? 'signup' : 'login');
+        }
+
+        async function submitAuth() {
+            const email = document.getElementById('auth-email').value;
+            const password = document.getElementById('auth-password').value;
+            const errorEl = document.getElementById('auth-error');
+
+            try {
+                if (authMode === 'login') {
+                    await auth.signInWithEmailAndPassword(email, password);
+                } else {
+                    await auth.createUserWithEmailAndPassword(email, password);
+                    // Initialize user document
+                    await db.collection('users').doc(auth.currentUser.uid).set({
+                        email: email,
+                        stats: { answered: 0, correct: 0, streak: 0 },
+                        answeredQuestions: {},
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                }
+                hideAuthModal();
+            } catch (error) {
+                errorEl.textContent = error.message;
+                errorEl.classList.remove('hidden');
+            }
+        }
+
+        async function logout() {
+            await auth.signOut();
+            userStats = { answered: 0, correct: 0, streak: 0 };
+            answeredQuestions = {};
+            updateQuestionsUI();
+        }
+
+        async function googleSignIn() {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            try {
+                const result = await auth.signInWithPopup(provider);
+                // Check if new user, create document
+                const userDoc = await db.collection('users').doc(result.user.uid).get();
+                if (!userDoc.exists) {
+                    await db.collection('users').doc(result.user.uid).set({
+                        email: result.user.email,
+                        stats: { answered: 0, correct: 0, streak: 0 },
+                        answeredQuestions: {},
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                }
+                hideAuthModal();
+            } catch (error) {
+                document.getElementById('auth-error').textContent = error.message;
+                document.getElementById('auth-error').classList.remove('hidden');
+            }
+        }
+
+        // ============================================
+        // USER DATA
+        // ============================================
+        async function loadUserData() {
+            if (!currentUser) return;
+
+            const doc = await db.collection('users').doc(currentUser.uid).get();
+            if (doc.exists) {
+                const data = doc.data();
+                userStats = data.stats || { answered: 0, correct: 0, streak: 0 };
+                answeredQuestions = data.answeredQuestions || {};
+            }
+        }
+
+        async function saveUserData() {
+            if (!currentUser) return;
+
+            await db.collection('users').doc(currentUser.uid).update({
+                stats: userStats,
+                answeredQuestions: answeredQuestions
+            });
+        }
+
+        function updateStatsUI() {
+            document.getElementById('stat-answered').textContent = userStats.answered;
+            document.getElementById('stat-correct').textContent = userStats.correct;
+            const pct = userStats.answered > 0 ? Math.round((userStats.correct / userStats.answered) * 100) : 0;
+            document.getElementById('stat-percent').textContent = pct + '%';
+            document.getElementById('stat-streak').textContent = userStats.streak;
+        }
+
+        function updateQuestionsUI() {
+            document.querySelectorAll('.question').forEach(q => {
+                const id = q.dataset.id;
+                const resultText = q.querySelector('.result-text');
+
+                if (answeredQuestions[id] !== undefined) {
+                    q.classList.add('answered');
+                    q.querySelector('.answer').classList.add('visible');
+                    q.querySelector('.reveal-btn').classList.add('hidden');
+                    q.querySelector('.correct-btn').classList.add('hidden');
+                    q.querySelector('.incorrect-btn').classList.add('hidden');
+                    resultText.classList.remove('hidden');
+                    resultText.textContent = answeredQuestions[id] ? '✓ Correct' : '✗ Missed';
+                } else {
+                    q.classList.remove('answered');
+                    resultText.classList.add('hidden');
+                    resultText.textContent = '';
+                }
+            });
+        }
+
+        // ============================================
+        // QUESTION INTERACTIONS
+        // ============================================
+        function toggleAnswer(btn) {
+            const question = btn.closest('.question');
+            const answer = question.querySelector('.answer');
+            const correctBtn = question.querySelector('.correct-btn');
+            const incorrectBtn = question.querySelector('.incorrect-btn');
+
+            answer.classList.toggle('visible');
+
+            if (answer.classList.contains('visible')) {
+                btn.textContent = 'Hide Answer';
+                if (currentUser && !question.classList.contains('answered')) {
+                    correctBtn.classList.remove('hidden');
+                    incorrectBtn.classList.remove('hidden');
+                }
+            } else {
+                btn.textContent = 'Show Answer';
+                correctBtn.classList.add('hidden');
+                incorrectBtn.classList.add('hidden');
+            }
+        }
+
+        async function markAnswer(btn, isCorrect) {
+            if (!currentUser) return;
+
+            const question = btn.closest('.question');
+            const id = question.dataset.id;
+
+            if (answeredQuestions[id] !== undefined) return;
+
+            answeredQuestions[id] = isCorrect;
+            userStats.answered++;
+            if (isCorrect) {
+                userStats.correct++;
+                userStats.streak++;
+            } else {
+                userStats.streak = 0;
+            }
+
+            await saveUserData();
+            updateStatsUI();
+            updateQuestionsUI();
+        }
+    </script>
+</body>
+</html>
