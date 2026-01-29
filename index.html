@@ -308,10 +308,16 @@
             margin-top: 0.25rem;
         }
 
-        .login-prompt {
-            font-size: 0.85rem;
+        .loading {
+            text-align: center;
+            padding: 3rem;
             color: #888;
-            font-style: italic;
+        }
+
+        .no-questions {
+            text-align: center;
+            padding: 3rem;
+            color: #888;
         }
 
         footer {
@@ -364,47 +370,8 @@
         </div>
     </div>
 
-    <main>
-        <section class="category">
-            <h2>Art</h2>
-
-            <!--
-                QUESTION FORMAT:
-                data-id: unique ID for tracking
-                data-answers: comma-separated list of acceptable answers (case-insensitive)
-            -->
-
-            <div class="question" data-id="q1" data-answers="Raphael,Raffaello,Raffaello Sanzio">
-                <p class="question-text">Two peripheral figures in a fresco by what High Renaissance master were used in the cover art for a pair of companion albums released by Guns N' Roses in September 1991?</p>
-                <div class="answer-input-area">
-                    <input type="text" class="answer-input" placeholder="Your answer..." onkeypress="handleKeyPress(event, this)">
-                    <button class="submit-btn" onclick="submitAnswer(this)">Submit</button>
-                    <button class="skip-btn" onclick="skipQuestion(this)">Skip</button>
-                </div>
-                <div class="result hidden"></div>
-            </div>
-
-            <div class="question" data-id="q2" data-answers="Paolo Uccello,Uccello">
-                <p class="question-text">A 1432 battle between troops from Florence and Siena was depicted in three panels—now separated and housed, respectively, in London's National Gallery, the Louvre, and the Uffizi—by what artist?</p>
-                <div class="answer-input-area">
-                    <input type="text" class="answer-input" placeholder="Your answer..." onkeypress="handleKeyPress(event, this)">
-                    <button class="submit-btn" onclick="submitAnswer(this)">Submit</button>
-                    <button class="skip-btn" onclick="skipQuestion(this)">Skip</button>
-                </div>
-                <div class="result hidden"></div>
-            </div>
-
-            <div class="question" data-id="q3" data-answers="Bosch,Hieronymus Bosch">
-                <p class="question-text">What name is shared by a German multinational supplier of technology and services (and manufacturer of home appliances) and an Early Netherlandish painter who created several renowned triptychs?</p>
-                <div class="answer-input-area">
-                    <input type="text" class="answer-input" placeholder="Your answer..." onkeypress="handleKeyPress(event, this)">
-                    <button class="submit-btn" onclick="submitAnswer(this)">Submit</button>
-                    <button class="skip-btn" onclick="skipQuestion(this)">Skip</button>
-                </div>
-                <div class="result hidden"></div>
-            </div>
-
-        </section>
+    <main id="questions-container">
+        <div class="loading">Loading questions...</div>
     </main>
 
     <footer>
@@ -446,26 +413,94 @@
             appId: "1:284944131484:web:7c549e0036aaf65550d459"
         };
 
-        // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
 
         // ============================================
-        // AUTH STATE
+        // STATE
         // ============================================
         let currentUser = null;
         let userStats = { answered: 0, correct: 0, streak: 0 };
         let answeredQuestions = {};
         let authMode = 'login';
+        let questions = [];
 
+        // ============================================
+        // LOAD QUESTIONS
+        // ============================================
+        async function loadQuestions() {
+            try {
+                const snapshot = await db.collection('questions')
+                    .where('published', '==', true)
+                    .get();
+
+                questions = snapshot.docs.map(doc => ({
+                    ...doc.data(),
+                    firebaseId: doc.id
+                }));
+
+                renderQuestions();
+            } catch (error) {
+                console.error('Error loading questions:', error);
+                document.getElementById('questions-container').innerHTML =
+                    '<div class="no-questions">Error loading questions. Please try again later.</div>';
+            }
+        }
+
+        function renderQuestions() {
+            const container = document.getElementById('questions-container');
+
+            if (questions.length === 0) {
+                container.innerHTML = '<div class="no-questions">No questions available yet. Check back soon!</div>';
+                return;
+            }
+
+            // Group by category
+            const byCategory = {};
+            questions.forEach(q => {
+                if (!byCategory[q.category]) byCategory[q.category] = [];
+                byCategory[q.category].push(q);
+            });
+
+            let html = '';
+            for (const [category, qs] of Object.entries(byCategory)) {
+                html += `<section class="category"><h2>${category}</h2>`;
+                qs.forEach(q => {
+                    const answered = answeredQuestions[q.firebaseId];
+                    html += `
+                        <div class="question" data-id="${q.firebaseId}">
+                            <p class="question-text">${q.question}</p>
+                            <div class="answer-input-area">
+                                <input type="text" class="answer-input" placeholder="Your answer..."
+                                    onkeypress="handleKeyPress(event, this)" ${answered ? 'disabled' : ''}
+                                    value="${answered ? answered.userAnswer : ''}">
+                                <button class="submit-btn" onclick="submitAnswer(this)" ${answered ? 'disabled' : ''}>Submit</button>
+                                <button class="skip-btn ${answered ? 'hidden' : ''}" onclick="skipQuestion(this)">Skip</button>
+                            </div>
+                            <div class="result ${answered ? (answered.correct ? 'correct' : 'incorrect') : 'hidden'}">
+                                ${answered ? (answered.correct ? '<strong>Correct!</strong>' :
+                                    `<strong>Incorrect.</strong><div class="correct-answer">Answer: ${answered.correctAnswer}</div>`) : ''}
+                            </div>
+                        </div>
+                    `;
+                });
+                html += '</section>';
+            }
+
+            container.innerHTML = html;
+        }
+
+        // ============================================
+        // AUTH STATE
+        // ============================================
         auth.onAuthStateChanged(async (user) => {
             currentUser = user;
             updateUserUI();
             if (user) {
                 await loadUserData();
                 updateStatsUI();
-                updateQuestionsUI();
+                renderQuestions(); // Re-render to show answered state
             }
         });
 
@@ -536,7 +571,7 @@
             await auth.signOut();
             userStats = { answered: 0, correct: 0, streak: 0 };
             answeredQuestions = {};
-            updateQuestionsUI();
+            renderQuestions();
         }
 
         async function googleSignIn() {
@@ -590,42 +625,6 @@
             document.getElementById('stat-streak').textContent = userStats.streak;
         }
 
-        function updateQuestionsUI() {
-            document.querySelectorAll('.question').forEach(q => {
-                const id = q.dataset.id;
-                const inputArea = q.querySelector('.answer-input-area');
-                const resultDiv = q.querySelector('.result');
-                const input = q.querySelector('.answer-input');
-                const submitBtn = q.querySelector('.submit-btn');
-                const skipBtn = q.querySelector('.skip-btn');
-
-                if (answeredQuestions[id] !== undefined) {
-                    // Already answered
-                    const record = answeredQuestions[id];
-                    input.value = record.userAnswer || '';
-                    input.disabled = true;
-                    submitBtn.disabled = true;
-                    skipBtn.classList.add('hidden');
-
-                    resultDiv.classList.remove('hidden');
-                    if (record.correct) {
-                        resultDiv.className = 'result correct';
-                        resultDiv.innerHTML = `<strong>Correct!</strong>`;
-                    } else {
-                        resultDiv.className = 'result incorrect';
-                        resultDiv.innerHTML = `<strong>Incorrect.</strong><div class="correct-answer">Answer: ${record.correctAnswer}</div>`;
-                    }
-                } else {
-                    // Not answered yet
-                    input.disabled = false;
-                    input.value = '';
-                    submitBtn.disabled = false;
-                    skipBtn.classList.remove('hidden');
-                    resultDiv.classList.add('hidden');
-                }
-            });
-        }
-
         // ============================================
         // ANSWER CHECKING
         // ============================================
@@ -633,8 +632,12 @@
             return str.toLowerCase().trim().replace(/[^a-z0-9\s]/g, '');
         }
 
-        function checkAnswer(userAnswer, acceptableAnswers) {
+        function checkAnswer(userAnswer, question) {
             const normalized = normalizeAnswer(userAnswer);
+            const acceptableAnswers = [question.answer];
+            if (question.altAnswers) {
+                acceptableAnswers.push(...question.altAnswers.split(',').map(a => a.trim()));
+            }
             return acceptableAnswers.some(ans => normalizeAnswer(ans) === normalized);
         }
 
@@ -646,23 +649,24 @@
         }
 
         async function submitAnswer(btn) {
-            const question = btn.closest('.question');
-            const id = question.dataset.id;
-            const input = question.querySelector('.answer-input');
+            const questionEl = btn.closest('.question');
+            const id = questionEl.dataset.id;
+            const input = questionEl.querySelector('.answer-input');
             const userAnswer = input.value.trim();
 
             if (!userAnswer) return;
-            if (answeredQuestions[id] !== undefined) return;
+            if (answeredQuestions[id]) return;
 
-            const acceptableAnswers = question.dataset.answers.split(',');
-            const isCorrect = checkAnswer(userAnswer, acceptableAnswers);
-            const correctAnswer = acceptableAnswers[0]; // Display first answer as the "correct" one
+            const question = questions.find(q => q.firebaseId === id);
+            if (!question) return;
+
+            const isCorrect = checkAnswer(userAnswer, question);
 
             // Record answer
             answeredQuestions[id] = {
                 correct: isCorrect,
                 userAnswer: userAnswer,
-                correctAnswer: correctAnswer
+                correctAnswer: question.answer
             };
 
             // Update stats
@@ -680,23 +684,23 @@
             }
 
             updateStatsUI();
-            updateQuestionsUI();
+            renderQuestions();
         }
 
         async function skipQuestion(btn) {
-            const question = btn.closest('.question');
-            const id = question.dataset.id;
+            const questionEl = btn.closest('.question');
+            const id = questionEl.dataset.id;
 
-            if (answeredQuestions[id] !== undefined) return;
+            if (answeredQuestions[id]) return;
 
-            const acceptableAnswers = question.dataset.answers.split(',');
-            const correctAnswer = acceptableAnswers[0];
+            const question = questions.find(q => q.firebaseId === id);
+            if (!question) return;
 
             // Record as skipped (incorrect)
             answeredQuestions[id] = {
                 correct: false,
                 userAnswer: '(skipped)',
-                correctAnswer: correctAnswer
+                correctAnswer: question.answer
             };
 
             userStats.answered++;
@@ -707,8 +711,13 @@
             }
 
             updateStatsUI();
-            updateQuestionsUI();
+            renderQuestions();
         }
+
+        // ============================================
+        // INIT
+        // ============================================
+        loadQuestions();
     </script>
 </body>
 </html>
