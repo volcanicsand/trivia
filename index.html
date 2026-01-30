@@ -374,6 +374,13 @@
             margin-top: 0.25rem;
         }
 
+        .result .difficulty {
+            font-size: 0.8rem;
+            color: #8a7e6b;
+            margin-top: 0.4rem;
+            letter-spacing: 0.03em;
+        }
+
         .loading {
             text-align: center;
             padding: 3rem;
@@ -542,6 +549,7 @@
                         <div class="result ${answered ? (answered.correct ? 'correct' : 'incorrect') : 'hidden'}">
                             ${answered ? (answered.correct ? '<strong>Correct!</strong>' :
                                 `<strong>Incorrect.</strong><div class="correct-answer">Answer: ${answered.correctAnswer}</div>`) : ''}
+                            ${answered && q.attempts ? `<div class="difficulty">${Math.round((q.correctCount || 0) / q.attempts * 100)}% of players got this right</div>` : ''}
                         </div>
                     </div>
                 `;
@@ -763,6 +771,19 @@
                 userStats.streak = 0;
             }
 
+            // Update question-level stats in Firestore
+            try {
+                await db.collection('questions').doc(id).update({
+                    attempts: firebase.firestore.FieldValue.increment(1),
+                    correctCount: firebase.firestore.FieldValue.increment(isCorrect ? 1 : 0)
+                });
+                // Update local question data
+                question.attempts = (question.attempts || 0) + 1;
+                question.correctCount = (question.correctCount || 0) + (isCorrect ? 1 : 0);
+            } catch (e) {
+                console.log('Could not update question stats:', e);
+            }
+
             // Save if logged in
             if (currentUser) {
                 await saveUserData();
@@ -791,6 +812,16 @@
 
             userStats.answered++;
             userStats.streak = 0;
+
+            // Update question-level stats in Firestore
+            try {
+                await db.collection('questions').doc(id).update({
+                    attempts: firebase.firestore.FieldValue.increment(1)
+                });
+                question.attempts = (question.attempts || 0) + 1;
+            } catch (e) {
+                console.log('Could not update question stats:', e);
+            }
 
             if (currentUser) {
                 await saveUserData();
