@@ -465,6 +465,9 @@
             <input type="password" id="auth-password" placeholder="Password">
             <button class="btn-primary" id="auth-submit" onclick="submitAuth()">Log In</button>
             <button class="btn-google" onclick="googleSignIn()">Sign in with Google</button>
+            <p class="switch-mode" id="forgot-password" style="margin-bottom:0.5rem;">
+                <a onclick="resetPassword()">Forgot password?</a>
+            </p>
             <p class="switch-mode">
                 <span id="switch-text">Don't have an account?</span>
                 <a onclick="toggleAuthMode()"><span id="switch-link">Sign up</span></a>
@@ -631,6 +634,26 @@
             } catch (error) {
                 errorEl.textContent = error.message;
                 errorEl.classList.remove('hidden');
+            }
+        }
+
+        async function resetPassword() {
+            const email = document.getElementById('auth-email').value;
+            const errorEl = document.getElementById('auth-error');
+            if (!email) {
+                errorEl.textContent = 'Enter your email address first.';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+            try {
+                await auth.sendPasswordResetEmail(email);
+                errorEl.textContent = 'Password reset email sent. Check your inbox.';
+                errorEl.classList.remove('hidden');
+                errorEl.style.color = '#7a9a5a';
+            } catch (error) {
+                errorEl.textContent = error.message;
+                errorEl.classList.remove('hidden');
+                errorEl.style.color = '#c25a3c';
             }
         }
 
