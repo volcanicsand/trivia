@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trivia</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -12,9 +15,10 @@
         }
 
         body {
-            font-family: 'Georgia', serif;
-            background: #fafafa;
-            color: #222;
+            font-family: 'Jost', sans-serif;
+            font-weight: 300;
+            background: #f5f0e8;
+            color: #3a3532;
             line-height: 1.7;
             padding: 2rem;
             max-width: 700px;
@@ -24,7 +28,7 @@
         header {
             margin-bottom: 2rem;
             padding-bottom: 1rem;
-            border-bottom: 1px solid #ddd;
+            border-bottom: 2px solid #c25a3c;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -32,8 +36,10 @@
 
         h1 {
             font-size: 1.8rem;
-            font-weight: normal;
-            letter-spacing: 0.02em;
+            font-weight: 400;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: #c25a3c;
         }
 
         .user-area {
@@ -43,18 +49,20 @@
 
         .user-area button {
             background: none;
-            border: 1px solid #ccc;
+            border: 1px solid #c9b99a;
             padding: 0.3rem 0.6rem;
             font-size: 0.8rem;
-            color: #666;
+            color: #8a7e6b;
             cursor: pointer;
             font-family: inherit;
             margin-left: 0.5rem;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
         }
 
         .user-area button:hover {
-            border-color: #999;
-            color: #333;
+            border-color: #c25a3c;
+            color: #c25a3c;
         }
 
         /* Auth Modal */
@@ -76,78 +84,85 @@
         }
 
         .modal {
-            background: #fff;
+            background: #faf6ef;
             padding: 2rem;
             max-width: 350px;
             width: 90%;
-            border-radius: 4px;
+            border: 2px solid #c25a3c;
         }
 
         .modal h2 {
             font-size: 1.2rem;
-            font-weight: normal;
+            font-weight: 400;
             margin-bottom: 1.5rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: #c25a3c;
         }
 
         .modal input {
             width: 100%;
             padding: 0.6rem;
             margin-bottom: 1rem;
-            border: 1px solid #ccc;
+            border: 1px solid #c9b99a;
             font-family: inherit;
             font-size: 1rem;
+            background: #fff;
         }
 
         .modal input:focus {
             outline: none;
-            border-color: #666;
+            border-color: #c25a3c;
         }
 
         .modal .btn-primary {
             width: 100%;
             padding: 0.7rem;
-            background: #333;
-            color: #fff;
+            background: #c25a3c;
+            color: #faf6ef;
             border: none;
             cursor: pointer;
             font-family: inherit;
-            font-size: 1rem;
+            font-size: 0.9rem;
             margin-bottom: 1rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
         }
 
         .modal .btn-primary:hover {
-            background: #444;
+            background: #a84832;
         }
 
         .modal .btn-google {
             width: 100%;
             padding: 0.7rem;
-            background: #fff;
-            color: #333;
-            border: 1px solid #ccc;
+            background: #faf6ef;
+            color: #3a3532;
+            border: 1px solid #c9b99a;
             cursor: pointer;
             font-family: inherit;
             font-size: 0.9rem;
             margin-bottom: 1rem;
+            letter-spacing: 0.05em;
         }
 
         .modal .btn-google:hover {
-            background: #f5f5f5;
+            background: #e8dfd1;
         }
 
         .modal .switch-mode {
             font-size: 0.85rem;
-            color: #666;
+            color: #8a7e6b;
             text-align: center;
         }
 
         .modal .switch-mode a {
-            color: #333;
+            color: #c25a3c;
             cursor: pointer;
         }
 
         .modal .error {
-            color: #c00;
+            color: #c25a3c;
             font-size: 0.85rem;
             margin-bottom: 1rem;
         }
@@ -164,11 +179,12 @@
 
         /* Stats Box */
         .stats-box {
-            background: #f0f0f0;
+            background: #e8dfd1;
             padding: 1rem 1.5rem;
             margin-bottom: 2rem;
             font-size: 0.9rem;
             display: none;
+            border: 1px solid #c9b99a;
         }
 
         .stats-box.visible {
@@ -178,9 +194,9 @@
         .stats-box h3 {
             font-size: 0.8rem;
             text-transform: uppercase;
-            letter-spacing: 0.1em;
-            color: #666;
-            font-weight: normal;
+            letter-spacing: 0.15em;
+            color: #8a7e6b;
+            font-weight: 400;
             margin-bottom: 0.5rem;
         }
 
@@ -193,13 +209,15 @@
 
         .stat-item .stat-value {
             font-size: 1.4rem;
-            color: #333;
+            color: #c25a3c;
+            font-weight: 400;
         }
 
         .stat-item .stat-label {
             font-size: 0.7rem;
-            color: #888;
+            color: #8a7e6b;
             text-transform: uppercase;
+            letter-spacing: 0.1em;
         }
 
         /* Questions */
@@ -219,7 +237,7 @@
         .question {
             margin-bottom: 1.5rem;
             padding-bottom: 1.5rem;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid #d9cebc;
         }
 
         .question:last-child {
@@ -239,51 +257,57 @@
         .answer-input {
             flex: 1;
             padding: 0.5rem;
-            border: 1px solid #ccc;
+            border: 1px solid #c9b99a;
             font-family: inherit;
             font-size: 0.95rem;
+            background: #faf6ef;
         }
 
         .answer-input:focus {
             outline: none;
-            border-color: #666;
+            border-color: #c25a3c;
         }
 
         .answer-input:disabled {
-            background: #f5f5f5;
+            background: #ede8de;
         }
 
         .submit-btn {
-            background: #333;
-            color: #fff;
+            background: #c25a3c;
+            color: #faf6ef;
             border: none;
             padding: 0.5rem 1rem;
             font-family: inherit;
             cursor: pointer;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            font-size: 0.85rem;
         }
 
         .submit-btn:hover {
-            background: #444;
+            background: #a84832;
         }
 
         .submit-btn:disabled {
-            background: #999;
+            background: #c9b99a;
             cursor: default;
         }
 
         .skip-btn {
             background: none;
-            border: 1px solid #ccc;
+            border: 1px solid #c9b99a;
             padding: 0.5rem 0.8rem;
             font-size: 0.85rem;
-            color: #666;
+            color: #8a7e6b;
             cursor: pointer;
             font-family: inherit;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
         }
 
         .skip-btn:hover {
-            border-color: #999;
-            color: #333;
+            border-color: #c25a3c;
+            color: #c25a3c;
         }
 
         .result {
@@ -293,13 +317,13 @@
         }
 
         .result.correct {
-            background: #d4edda;
-            border-left: 3px solid #28a745;
+            background: #d6e2c7;
+            border-left: 3px solid #7a9a5a;
         }
 
         .result.incorrect {
-            background: #f8d7da;
-            border-left: 3px solid #dc3545;
+            background: #ecd5c8;
+            border-left: 3px solid #c25a3c;
         }
 
         .result .correct-answer {
@@ -311,25 +335,28 @@
         .loading {
             text-align: center;
             padding: 3rem;
-            color: #888;
+            color: #8a7e6b;
+            letter-spacing: 0.05em;
         }
 
         .no-questions {
             text-align: center;
             padding: 3rem;
-            color: #888;
+            color: #8a7e6b;
+            letter-spacing: 0.05em;
         }
 
         footer {
             margin-top: 4rem;
             padding-top: 1rem;
-            border-top: 1px solid #ddd;
+            border-top: 2px solid #c25a3c;
             font-size: 0.85rem;
-            color: #888;
+            color: #8a7e6b;
+            letter-spacing: 0.03em;
         }
 
         footer a {
-            color: #666;
+            color: #c25a3c;
         }
 
         .hidden {
