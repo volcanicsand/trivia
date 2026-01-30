@@ -220,6 +220,48 @@
             letter-spacing: 0.1em;
         }
 
+        /* Category Stats */
+        #category-stats {
+            margin-top: 1rem;
+            border-top: 1px solid #c9b99a;
+            padding-top: 0.75rem;
+        }
+
+        #category-stats:empty {
+            display: none;
+        }
+
+        #category-stats h3 {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: #8a7e6b;
+            font-weight: 400;
+            margin-bottom: 0.5rem;
+        }
+
+        .category-stat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.3rem 0;
+            font-size: 0.85rem;
+        }
+
+        .category-stat-name {
+            color: #3a3532;
+            font-weight: 400;
+        }
+
+        .category-stat-detail {
+            color: #8a7e6b;
+        }
+
+        .category-stat-detail .cat-pct {
+            color: #c25a3c;
+            font-weight: 400;
+        }
+
         /* Questions */
         .category {
             margin-bottom: 3rem;
@@ -376,7 +418,7 @@
 
     <!-- Stats Box (shown when logged in) -->
     <div class="stats-box" id="stats-box">
-        <h3>Your Stats</h3>
+        <h3>Overall</h3>
         <div class="stats-grid">
             <div class="stat-item">
                 <div class="stat-value" id="stat-answered">0</div>
@@ -395,6 +437,7 @@
                 <div class="stat-label">Streak</div>
             </div>
         </div>
+        <div id="category-stats"></div>
     </div>
 
     <main id="questions-container">
@@ -639,6 +682,31 @@
             const pct = userStats.answered > 0 ? Math.round((userStats.correct / userStats.answered) * 100) : 0;
             document.getElementById('stat-percent').textContent = pct + '%';
             document.getElementById('stat-streak').textContent = userStats.streak;
+
+            // Category breakdown
+            const byCategory = {};
+            for (const [id, ans] of Object.entries(answeredQuestions)) {
+                const cat = ans.category || 'Uncategorized';
+                if (!byCategory[cat]) byCategory[cat] = { answered: 0, correct: 0 };
+                byCategory[cat].answered++;
+                if (ans.correct) byCategory[cat].correct++;
+            }
+
+            const catContainer = document.getElementById('category-stats');
+            const cats = Object.entries(byCategory).sort((a, b) => a[0].localeCompare(b[0]));
+            if (cats.length > 0) {
+                let html = '<h3>By Category</h3>';
+                cats.forEach(([cat, stats]) => {
+                    const catPct = Math.round((stats.correct / stats.answered) * 100);
+                    html += `<div class="category-stat-row">
+                        <span class="category-stat-name">${cat}</span>
+                        <span class="category-stat-detail">${stats.correct}/${stats.answered} <span class="cat-pct">${catPct}%</span></span>
+                    </div>`;
+                });
+                catContainer.innerHTML = html;
+            } else {
+                catContainer.innerHTML = '';
+            }
         }
 
         // ============================================
