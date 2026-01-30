@@ -456,37 +456,26 @@
                 return;
             }
 
-            // Group by category
-            const byCategory = {};
-            questions.forEach(q => {
-                if (!byCategory[q.category]) byCategory[q.category] = [];
-                byCategory[q.category].push(q);
-            });
-
             let html = '';
-            for (const [category, qs] of Object.entries(byCategory)) {
-                html += `<section class="category"><h2>${category}</h2>`;
-                qs.forEach(q => {
-                    const answered = answeredQuestions[q.firebaseId];
-                    html += `
-                        <div class="question" data-id="${q.firebaseId}">
-                            <p class="question-text">${q.question}</p>
-                            <div class="answer-input-area">
-                                <input type="text" class="answer-input" placeholder="Your answer..."
-                                    onkeypress="handleKeyPress(event, this)" ${answered ? 'disabled' : ''}
-                                    value="${answered ? answered.userAnswer : ''}">
-                                <button class="submit-btn" onclick="submitAnswer(this)" ${answered ? 'disabled' : ''}>Submit</button>
-                                <button class="skip-btn ${answered ? 'hidden' : ''}" onclick="skipQuestion(this)">Skip</button>
-                            </div>
-                            <div class="result ${answered ? (answered.correct ? 'correct' : 'incorrect') : 'hidden'}">
-                                ${answered ? (answered.correct ? '<strong>Correct!</strong>' :
-                                    `<strong>Incorrect.</strong><div class="correct-answer">Answer: ${answered.correctAnswer}</div>`) : ''}
-                            </div>
+            questions.forEach(q => {
+                const answered = answeredQuestions[q.firebaseId];
+                html += `
+                    <div class="question" data-id="${q.firebaseId}" data-category="${q.category || ''}">
+                        <p class="question-text">${q.question}</p>
+                        <div class="answer-input-area">
+                            <input type="text" class="answer-input" placeholder="Your answer..."
+                                onkeypress="handleKeyPress(event, this)" ${answered ? 'disabled' : ''}
+                                value="${answered ? answered.userAnswer : ''}">
+                            <button class="submit-btn" onclick="submitAnswer(this)" ${answered ? 'disabled' : ''}>Submit</button>
+                            <button class="skip-btn ${answered ? 'hidden' : ''}" onclick="skipQuestion(this)">Skip</button>
                         </div>
-                    `;
-                });
-                html += '</section>';
-            }
+                        <div class="result ${answered ? (answered.correct ? 'correct' : 'incorrect') : 'hidden'}">
+                            ${answered ? (answered.correct ? '<strong>Correct!</strong>' :
+                                `<strong>Incorrect.</strong><div class="correct-answer">Answer: ${answered.correctAnswer}</div>`) : ''}
+                        </div>
+                    </div>
+                `;
+            });
 
             container.innerHTML = html;
         }
@@ -666,7 +655,8 @@
             answeredQuestions[id] = {
                 correct: isCorrect,
                 userAnswer: userAnswer,
-                correctAnswer: question.answer
+                correctAnswer: question.answer,
+                category: question.category || ''
             };
 
             // Update stats
@@ -700,7 +690,8 @@
             answeredQuestions[id] = {
                 correct: false,
                 userAnswer: '(skipped)',
-                correctAnswer: question.answer
+                correctAnswer: question.answer,
+                category: question.category || ''
             };
 
             userStats.answered++;
