@@ -740,19 +740,47 @@
         }
 
         // ============================================
-        // ANSWER CHECKING
+        // ANSWER CHECKING (fuzzy)
         // ============================================
         function normalizeAnswer(str) {
-            return str.toLowerCase().trim().replace(/[^a-z0-9\s]/g, '');
+            return str.toLowerCase().trim()
+                .replace(/[^a-z0-9 ]/g, '')
+                .replace(/\b(the|a|an)\b/g, '')
+                .replace(/\s+/g, ' ')
+                .trim();
+        }
+
+        function levenshtein(a, b) {
+            const m = a.length, n = b.length;
+            const d = Array.from({length: m + 1}, () => Array(n + 1).fill(0));
+            for (let i = 0; i <= m; i++) d[i][0] = i;
+            for (let j = 0; j <= n; j++) d[0][j] = j;
+            for (let i = 1; i <= m; i++)
+                for (let j = 1; j <= n; j++)
+                    d[i][j] = Math.min(d[i-1][j]+1, d[i][j-1]+1, d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));
+            return d[m][n];
+        }
+
+        function fuzzyEquals(input, answer) {
+            const ni = normalizeAnswer(input);
+            const na = normalizeAnswer(answer);
+            if (!ni) return false;
+            // Exact match after normalization
+            if (ni === na) return true;
+            // Allow typos: edit distance within ~15% of answer length, min 1
+            const threshold = Math.max(1, Math.floor(na.length * 0.15));
+            if (levenshtein(ni, na) <= threshold) return true;
+            // If both are at least 4 chars, accept if one contains the other
+            if (ni.length >= 4 && na.length >= 4 && (ni.includes(na) || na.includes(ni))) return true;
+            return false;
         }
 
         function checkAnswer(userAnswer, question) {
-            const normalized = normalizeAnswer(userAnswer);
             const acceptableAnswers = [question.answer];
             if (question.altAnswers) {
                 acceptableAnswers.push(...question.altAnswers.split(',').map(a => a.trim()));
             }
-            return acceptableAnswers.some(ans => normalizeAnswer(ans) === normalized);
+            return acceptableAnswers.some(ans => fuzzyEquals(userAnswer, ans));
         }
 
         function handleKeyPress(event, input) {
